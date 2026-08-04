@@ -1,0 +1,19 @@
+{
+  "llm_provider": "auto",
+  "api_key": "",
+  "base_url": "https://api.deepseek.com",
+  "model": "deepseek-v4-flash",
+  "llm_api_key": "",
+  "llm_base_url": "",
+  "llm_model": "",
+  "anthropic_api_key": "",
+  "anthropic_model": "claude-3-5-sonnet-20241022",
+  "default_embedder": "bge-m3",
+  "bge_m3_path": "",
+  "google_api_key": "",
+  "google_embedding_model": "gemini-embedding-001",
+  "openai_api_key": "",
+  "openai_base_url": "",
+  "openai_embedding_model": "text-embedding-3-small",
+  "qdrant_path": "./data/qdrant"
+}

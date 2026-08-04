@@ -1,0 +1,5 @@
+# Dev / test only - not needed in the production image
+-r requirements.txt
+
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

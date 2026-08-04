@@ -1,0 +1,60 @@
+# DeepMem one-click local stack: DeepMem (HTTP + MCP) + Qdrant.
+#
+# Usage:
+#   1. cp .env.example .env   # then add an LLM API key (DEEPSEEK_API_KEY /
+#                             # LLM_API_KEY / ANTHROPIC_API_KEY)
+#   2. docker compose up --build
+#   3. curl http://localhost:8000/health
+#
+# First start with EMBEDDING_PROVIDER=bge-m3 downloads BGE-M3 from HuggingFace
+# (~2.2GB, one-time, cached in the deepmem-data volume). To skip the download,
+# mount a local BGE-M3 model dir and set BGE_M3_PATH to it.
+#
+# GPU: change the Dockerfile torch install to the cu121 index and add
+#   deploy: { resources: { reservations: { devices: [{driver: nvidia, count: all, capabilities: [gpu]}] } } }
+# under the deepmem service, plus BGE_DEVICE=auto (or cuda).
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+
+  deepmem:
+    build: .
+    depends_on:
+      - qdrant
+    env_file:
+      - .env
+    environment:
+      # Use the sidecar Qdrant instead of local file storage.
+      QDRANT_URL: http://qdrant:6333
+      # Embeddings: BGE-M3 (downloads on first start, cached in the volume).
+      EMBEDDING_PROVIDER: bge-m3
+      BGE_M3_PATH: BAAI/bge-m3
+      BGE_DEVICE: cpu            # set auto/cuda if you switch to a GPU image
+      # CORS: wildcard is dev-only (DEEPMEMORY_DEBUG=1 allows it). For real
+      # deployments set CORS_ORIGINS to a comma-separated allow-list in .env.
+      CORS_ORIGINS: "*"
+      DEEPMEMORY_DEBUG: "1"
+    ports:
+      - "8000:8000"   # HTTP API
+      - "8001:8001"   # MCP (streamable-http)
+    volumes:
+      - deepmem-data:/data
+    restart: unless-stopped
+    # GPU variant - uncomment after switching the Dockerfile to CUDA torch:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  qdrant-data:
+  deepmem-data:

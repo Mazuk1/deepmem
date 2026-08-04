@@ -1,0 +1,5 @@
+# Normalize line endings to LF in the repository.
+# Prevents CRLF/LF churn when the repo is edited across platforms
+# (Windows editors vs. the Linux production server). Git applies this
+# clean filter on add/commit, so working-tree CRLF never enters history.
+* text=auto eol=lf
