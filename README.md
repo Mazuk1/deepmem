@@ -218,7 +218,7 @@ and BGE-M3 model-download options (HF mirror, proxy, or local mount).
 ### 3. From source
 
 ```bash
-git clone <repo> && cd mem
+git clone https://github.com/deepmemteam/deepmem.git && cd deepmem
 pip install -r requirements.txt
 cp .env.example .env          # add an LLM key + embedder config
 python server/start.py        # HTTP :8000 + MCP :8001
