@@ -124,9 +124,9 @@ class AsyncBatchDistiller:
                                                "source_type": None,
                                                "session_id": None}
         self.queues[key].clear()
-        if key in self.timers:
-            self.timers[key].cancel()
-            del self.timers[key]
+        timer = self.timers.pop(key, None)
+        if timer is not None and timer is not asyncio.current_task():
+            timer.cancel()
         msg_count = len(batch)
         logger.info(
             "Distiller FIRING batch user=%s agent=%s run=%s msg_count=%d byok=%s",
