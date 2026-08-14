@@ -38,6 +38,19 @@ class TestBatchDistiller:
         assert len(distiller.queues["user_1"]) == 0
 
     @pytest.mark.asyncio
+    async def test_timer_fired_callback_can_await(self, distiller):
+        completed = asyncio.Event()
+
+        async def mock_processor(batch, **kwargs):
+            await asyncio.sleep(0)
+            completed.set()
+
+        distiller.on_batch_ready = mock_processor
+        await distiller.enqueue("user_1", [{"role": "user", "content": "Msg"}])
+
+        await asyncio.wait_for(completed.wait(), timeout=1)
+
+    @pytest.mark.asyncio
     async def test_batch_max_size_triggers_immediately(self, distiller):
         distiller.max_batch_size = 2
         processed = []

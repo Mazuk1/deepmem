@@ -1,0 +1,36 @@
+name: SonarQube Cloud
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    env:
+      DEEPSEEK_API_KEY: sk-test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install --quiet -r requirements-dev.txt pytest-cov
+      - name: Run tests with coverage
+        run: >-
+          pytest tests -q
+          --deselect=tests/test_llm.py::TestDeepSeekAdapter::test_extract_facts_from_messages
+          --deselect=tests/test_llm.py::TestDeepSeekAdapter::test_extract_facts_empty_messages
+          --deselect=tests/test_model_agnostic.py::TestUniversalLLMAdapter::test_fact_extraction_works_with_any_adapter
+          --cov=deepmem --cov=server --cov-report=xml:coverage.xml
+      - name: Make coverage paths relative for Sonar
+        run: python -c "import re;p='coverage.xml';s=open(p).read();open(p,'w').write(re.sub(r'<source>[^<]+</source>','<source>.</source>',s))"
+      - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        with:
+          args: -Dsonar.qualitygate.wait=true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
